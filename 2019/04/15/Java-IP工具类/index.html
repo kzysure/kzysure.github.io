@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Java/IP工具类 | kzysure</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="来自项目实践，备用   import lombok.extern.slf4j.Slf4j; import org.apache.commons.lang3.StringUtils;  import javax.servlet.http.HttpServletRequest; import java.net.InetAddress; import java.net.UnknownHostExce">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java&#x2F;IP工具类">
+<meta property="og:url" content="http://www.kzysure.cn/2019/04/15/Java-IP%E5%B7%A5%E5%85%B7%E7%B1%BB/index.html">
+<meta property="og:site_name" content="kzysure">
+<meta property="og:description" content="来自项目实践，备用   import lombok.extern.slf4j.Slf4j; import org.apache.commons.lang3.StringUtils;  import javax.servlet.http.HttpServletRequest; import java.net.InetAddress; import java.net.UnknownHostExce">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-04-15T05:35:30.000Z">
+<meta property="article:modified_time" content="2020-03-08T12:10:33.316Z">
+<meta property="article:author" content="kzysure">
+<meta name="twitter:card" content="summary">
+  
+  <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
+  <script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+      document.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightBlock(block);
+      });
+    });
+  </script>
+  
+<link rel="stylesheet" href="/css/index.css">
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body style="
+
+
+  background-color: #eff0f6
+
+">
+  <div id="container">
+    <nav id="nav">
+  <header class="header">
+    <a href="/" class="title">kzysure @生睿</a>
+  </header>
+  <div class="ctnWrap">
+    <div class="icons">
+      
+        
+          
+            <a href="https://github.com/kzysure" target="_blank" class="nav-icn iconfont icon-github"></a>
+          
+        
+      
+    </div>
+    <div class="menu">
+      
+        
+            <a href="/" class="nav-menu ">主页</a>
+          
+        
+            <a href="/archives" class="nav-menu ">归档</a>
+          
+        
+            <a href="/about" class="nav-menu ">关于我</a>
+          
+        
+      
+    </div>
+  </div>
+</nav>
+    <div id="main"><section class="article">
+  <h2 class="title">Java/IP工具类</h2>
+  <p class="sub">4月 15, 2019</p>
+  <article class="content">
+    <blockquote>
+<p> 来自项目实践，备用</p>
+</blockquote>
+<pre><code>
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
+
+import javax.servlet.http.HttpServletRequest;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+@Slf4j
+public class IpUtil {
+
+    public final static String ERROR_IP = &quot;127.0.0.1&quot;;
+
+    public final static Pattern pattern = Pattern.
+            compile(&quot;(2[5][0-5]|2[0-4]\\d|1\\d{2}|\\d{1,2})\\.(25[0-5]|2[0-4]\\d|1\\d{2}|\\d{1,2})\\.(25[0-5]|2[0-4]\\d|1\\d{2}|\\d{1,2})\\.(25[0-5]|2[0-4]\\d|1\\d{2}|\\d{1,2})&quot;);
+
+    /**
+     * 取外网IP
+     *
+     * @param request
+     * @return
+     */
+    public static String getRemoteIp(HttpServletRequest request) {
+        String ip = request.getHeader(&quot;x-real-ip&quot;);
+        if (ip == null) {
+            ip = request.getRemoteAddr();
+        }
+
+        //过滤反向代理的ip
+        String[] stemps = ip.split(&quot;,&quot;);
+        if (stemps != null &amp;&amp; stemps.length &gt;= 1) {
+            //得到第一个IP，即客户端真实IP
+            ip = stemps[0];
+        }
+
+        ip = ip.trim();
+        if (ip.length() &gt; 23) {
+            ip = ip.substring(0, 23);
+        }
+
+        return ip;
+    }
+
+    /**
+     * 获取用户的真实ip
+     *
+     * @param request
+     * @return
+     */
+    public static String getUserIP(HttpServletRequest request) {
+
+        // 优先取X-Real-IP
+        String ip = request.getHeader(&quot;X-Real-IP&quot;);
+        if (ip == null || ip.length() == 0 || &quot;unknown&quot;.equalsIgnoreCase(ip)) {
+            ip = request.getHeader(&quot;x-forwarded-for&quot;);
+        }
+
+        if (ip == null || ip.length() == 0 || &quot;unknown&quot;.equalsIgnoreCase(ip)) {
+            ip = request.getRemoteAddr();
+            if (&quot;0:0:0:0:0:0:0:1&quot;.equals(ip)) {
+                ip = ERROR_IP;
+            }
+        }
+
+        if (&quot;unknown&quot;.equalsIgnoreCase(ip)) {
+            ip = ERROR_IP;
+            return ip;
+        }
+
+        int pos = ip.indexOf(&apos;,&apos;);
+        if (pos &gt;= 0) {
+            ip = ip.substring(0, pos);
+        }
+
+        return ip;
+    }
+
+    public static String getLastIpSegment(HttpServletRequest request) {
+        String ip = getUserIP(request);
+        if (ip != null) {
+            ip = ip.substring(ip.lastIndexOf(&apos;.&apos;) + 1);
+        } else {
+            ip = &quot;0&quot;;
+        }
+        return ip;
+    }
+
+    public static boolean isValidIP(HttpServletRequest request) {
+        String ip = getUserIP(request);
+        return isValidIP(ip);
+    }
+
+    /**
+     * 判断我们获取的ip是否是一个符合规则ip
+     *
+     * @param ip
+     * @return
+     */
+    public static boolean isValidIP(String ip) {
+        if (StringUtils.isEmpty(ip)) {
+            log.debug(&quot;ip is null. valid result is false&quot;);
+            return false;
+        }
+
+        Matcher matcher = pattern.matcher(ip);
+        boolean isValid = matcher.matches();
+        log.debug(&quot;valid ip:&quot; + ip + &quot; result is: &quot; + isValid);
+        return isValid;
+    }
+
+    public static String getLastServerIpSegment() {
+        String ip = getServerIP();
+        if (ip != null) {
+            ip = ip.substring(ip.lastIndexOf(&apos;.&apos;) + 1);
+        } else {
+            ip = &quot;0&quot;;
+        }
+        return ip;
+    }
+
+    public static String getServerIP() {
+        InetAddress inet;
+        try {
+            inet = InetAddress.getLocalHost();
+            String hostAddress = inet.getHostAddress();
+            return hostAddress;
+        } catch (UnknownHostException e) {
+            e.printStackTrace();
+        }
+        return &quot;127.0.0.1&quot;;
+    }
+}</code></pre>
+  </article>
+  <footer class="f-cf">
+    
+      <a href="/2019/05/02/%E6%95%B0%E6%8D%AE%E5%BA%93-mysql%E9%9B%86%E7%BE%A4%E5%92%8Cmysql%E7%9A%84%E5%88%86%E6%94%AF%E6%AF%94%E8%BE%83/" class="link f-fl">⟵数据库/mysql集群和mysql的分支比较</a>
+    
+    
+      <a href="/2019/02/15/Java-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0/" class="link f-fr">Java/微服务安全学习⟶</a>
+    
+  </footer>
+</section></div>
+    <footer id="footer" class="f-cf">
+  kzysure@kzysure.com
+  
+    
+      
+        · <a href="https://github.com/kzysure" target="_blank" class="nav-icn">GitHub</a>
+      
+    
+  
+  <span class="copyright">2015-2020 All rights reserved @kzysure</span>
+</footer>
+  </div>
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>运维/通过Docker运行RocketMq | kzysure</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="第一步在工作目录新建一个brocker.conf文件  1234567891011121314151617brokerClusterName&#x3D;DefaultClusterbrokerName&#x3D;broker-abrokerId&#x3D;0# 改为自己的IPbrokerIP1&#x3D;192.168.31.6defaultTopicQueueNums&#x3D;4autoCr">
+<meta property="og:type" content="article">
+<meta property="og:title" content="运维&#x2F;通过Docker运行RocketMq">
+<meta property="og:url" content="http://www.kzysure.cn/2018/12/11/%E8%BF%90%E7%BB%B4-%E9%80%9A%E8%BF%87Docker%E8%BF%90%E8%A1%8CRocketMq/index.html">
+<meta property="og:site_name" content="kzysure">
+<meta property="og:description" content="第一步在工作目录新建一个brocker.conf文件  1234567891011121314151617brokerClusterName&#x3D;DefaultClusterbrokerName&#x3D;broker-abrokerId&#x3D;0# 改为自己的IPbrokerIP1&#x3D;192.168.31.6defaultTopicQueueNums&#x3D;4autoCr">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-12-11T11:49:07.000Z">
+<meta property="article:modified_time" content="2020-03-08T13:50:55.184Z">
+<meta property="article:author" content="kzysure">
+<meta name="twitter:card" content="summary">
+  
+  <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
+  <script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+      document.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightBlock(block);
+      });
+    });
+  </script>
+  
+<link rel="stylesheet" href="/css/index.css">
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body style="
+
+
+  background-color: #eff0f6
+
+">
+  <div id="container">
+    <nav id="nav">
+  <header class="header">
+    <a href="/" class="title">kzysure @生睿</a>
+  </header>
+  <div class="ctnWrap">
+    <div class="icons">
+      
+        
+          
+            <a href="https://github.com/kzysure" target="_blank" class="nav-icn iconfont icon-github"></a>
+          
+        
+      
+    </div>
+    <div class="menu">
+      
+        
+            <a href="/" class="nav-menu ">主页</a>
+          
+        
+            <a href="/archives" class="nav-menu ">归档</a>
+          
+        
+            <a href="/about" class="nav-menu ">关于我</a>
+          
+        
+      
+    </div>
+  </div>
+</nav>
+    <div id="main"><section class="article">
+  <h2 class="title">运维/通过Docker运行RocketMq</h2>
+  <p class="sub">12月 11, 2018</p>
+  <article class="content">
+    <blockquote>
+<p>第一步在工作目录新建一个brocker.conf文件</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">brokerClusterName&#x3D;DefaultCluster</span><br><span class="line">brokerName&#x3D;broker-a</span><br><span class="line">brokerId&#x3D;0</span><br><span class="line"># 改为自己的IP</span><br><span class="line">brokerIP1&#x3D;192.168.31.6</span><br><span class="line">defaultTopicQueueNums&#x3D;4</span><br><span class="line">autoCreateTopicEnable&#x3D;true</span><br><span class="line">autoCreateSubscriptionGroup&#x3D;true</span><br><span class="line">listenPort&#x3D;10911</span><br><span class="line">deleteWhen&#x3D;04</span><br><span class="line">fileReservedTime&#x3D;120</span><br><span class="line">mapedFileSizeCommitLog&#x3D;1073741824</span><br><span class="line">mapedFileSizeConsumeQueue&#x3D;300000</span><br><span class="line">diskMaxUsedSpaceRatio&#x3D;88</span><br><span class="line">maxMessageSize&#x3D;65536</span><br><span class="line">brokerRole&#x3D;ASYNC_MASTER</span><br><span class="line">flushDiskType&#x3D;ASYNC_FLUSH</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>编写docker-compose.yml编排容器</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line">version: &#39;3.5&#39;</span><br><span class="line">services:</span><br><span class="line">  rmqnamesrv:</span><br><span class="line">    image: foxiswho&#x2F;rocketmq:server</span><br><span class="line">    container_name: rmqnamesrv</span><br><span class="line">    restart: always</span><br><span class="line">    ports:</span><br><span class="line">      - 9876:9876</span><br><span class="line">    volumes:</span><br><span class="line">      - .&#x2F;data&#x2F;logs:&#x2F;opt&#x2F;logs</span><br><span class="line">      - .&#x2F;data&#x2F;store:&#x2F;opt&#x2F;store</span><br><span class="line">    networks:</span><br><span class="line">        rmq:</span><br><span class="line">          aliases:</span><br><span class="line">            - rmqnamesrv</span><br><span class="line">  rmqbroker:</span><br><span class="line">    image: foxiswho&#x2F;rocketmq:broker</span><br><span class="line">    container_name: rmqbroker</span><br><span class="line">    restart: always</span><br><span class="line">    ports:</span><br><span class="line">      - 10909:10909</span><br><span class="line">      - 10911:10911</span><br><span class="line">    volumes:</span><br><span class="line">      - .&#x2F;data&#x2F;logs:&#x2F;opt&#x2F;logs</span><br><span class="line">      - .&#x2F;data&#x2F;store:&#x2F;opt&#x2F;store</span><br><span class="line">      - .&#x2F;broker.conf:&#x2F;etc&#x2F;rocketmq&#x2F;broker.conf</span><br><span class="line">      # - .&#x2F;data&#x2F;brokerconf&#x2F;broker.conf:&#x2F;etc&#x2F;rocketmq&#x2F;broker.conf</span><br><span class="line">    environment:</span><br><span class="line">        NAMESRV_ADDR: &quot;rmqnamesrv:9876&quot;</span><br><span class="line">        JAVA_OPTS: &quot; -Duser.home&#x3D;&#x2F;opt&quot;</span><br><span class="line">        JAVA_OPT_EXT: &quot;-server -Xms128m -Xmx128m -Xmn128m&quot;</span><br><span class="line">    command: mqbroker -c &#x2F;etc&#x2F;rocketmq&#x2F;broker.conf</span><br><span class="line">    depends_on:</span><br><span class="line">      - rmqnamesrv</span><br><span class="line">    networks:</span><br><span class="line">      rmq:</span><br><span class="line">        aliases:</span><br><span class="line">          - rmqbroker</span><br><span class="line">  rmqconsole:</span><br><span class="line">    image: styletang&#x2F;rocketmq-console-ng</span><br><span class="line">    container_name: rmqconsole</span><br><span class="line">    restart: always</span><br><span class="line">    ports:</span><br><span class="line">      - 9080:8080</span><br><span class="line">    environment:</span><br><span class="line">        JAVA_OPTS: &quot;-Drocketmq.namesrv.addr&#x3D;rmqnamesrv:9876 -Dcom.rocketmq.sendMessageWithVIPChannel&#x3D;false&quot;</span><br><span class="line">    depends_on:</span><br><span class="line">      - rmqnamesrv</span><br><span class="line">    networks:</span><br><span class="line">      rmq:</span><br><span class="line">        aliases:</span><br><span class="line">          - rmqconsole</span><br><span class="line">networks:</span><br><span class="line">  rmq:</span><br><span class="line">    name: rmq</span><br><span class="line">    driver: bridge</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>运行： <code>docker-compose up</code></p>
+</blockquote>
+<blockquote>
+<p>停止 <code>docker-compose down</code></p>
+</blockquote>
+
+  </article>
+  <footer class="f-cf">
+    
+      <a href="/2019/02/15/Java-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0/" class="link f-fl">⟵Java/微服务安全学习</a>
+    
+    
+      <a href="/2018/07/04/Java-HttpClient%E5%B0%81%E8%A3%85%E5%B7%A5%E5%85%B7/" class="link f-fr">Java/HttpClient封装工具⟶</a>
+    
+  </footer>
+</section></div>
+    <footer id="footer" class="f-cf">
+  kzysure@kzysure.com
+  
+    
+      
+        · <a href="https://github.com/kzysure" target="_blank" class="nav-icn">GitHub</a>
+      
+    
+  
+  <span class="copyright">2015-2020 All rights reserved @kzysure</span>
+</footer>
+  </div>
+</body>
+</html>

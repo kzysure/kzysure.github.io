@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Java/Thrift监听bug | kzysure</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="使用Thrift RPC框架时做本地开发时，不要监听Python模块localhost，请监听127.0.0.1 不然会导致连接被拒绝的情况">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java&#x2F;Thrift监听bug">
+<meta property="og:url" content="http://www.kzysure.cn/2018/06/08/Java-Thrift%E7%9B%91%E5%90%ACbug/index.html">
+<meta property="og:site_name" content="kzysure">
+<meta property="og:description" content="使用Thrift RPC框架时做本地开发时，不要监听Python模块localhost，请监听127.0.0.1 不然会导致连接被拒绝的情况">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-06-08T11:38:47.000Z">
+<meta property="article:modified_time" content="2020-03-08T11:40:11.612Z">
+<meta property="article:author" content="kzysure">
+<meta name="twitter:card" content="summary">
+  
+  <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
+  <script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+      document.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightBlock(block);
+      });
+    });
+  </script>
+  
+<link rel="stylesheet" href="/css/index.css">
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body style="
+
+
+  background-color: #eff0f6
+
+">
+  <div id="container">
+    <nav id="nav">
+  <header class="header">
+    <a href="/" class="title">kzysure @生睿</a>
+  </header>
+  <div class="ctnWrap">
+    <div class="icons">
+      
+        
+          
+            <a href="https://github.com/kzysure" target="_blank" class="nav-icn iconfont icon-github"></a>
+          
+        
+      
+    </div>
+    <div class="menu">
+      
+        
+            <a href="/" class="nav-menu ">主页</a>
+          
+        
+            <a href="/archives" class="nav-menu ">归档</a>
+          
+        
+            <a href="/about" class="nav-menu ">关于我</a>
+          
+        
+      
+    </div>
+  </div>
+</nav>
+    <div id="main"><section class="article">
+  <h2 class="title">Java/Thrift监听bug</h2>
+  <p class="sub">6月 8, 2018</p>
+  <article class="content">
+    <blockquote>
+<p> 使用Thrift RPC框架时做本地开发时，不要监听Python模块localhost，请监听127.0.0.1 不然会导致连接被拒绝的情况</p>
+</blockquote>
+
+  </article>
+  <footer class="f-cf">
+    
+      <a href="/2018/06/13/Java-%E5%B1%82%E7%BA%A7%E8%AE%A1%E7%AE%97%E5%B7%A5%E5%85%B7%E7%B1%BB/" class="link f-fl">⟵Java/层级计算工具类</a>
+    
+    
+      <a href="/2018/03/18/Java-SpringBoot2-0%E6%96%B0%E7%89%B9%E6%80%A7/" class="link f-fr">Java/SpringBoot2.0新特性⟶</a>
+    
+  </footer>
+</section></div>
+    <footer id="footer" class="f-cf">
+  kzysure@kzysure.com
+  
+    
+      
+        · <a href="https://github.com/kzysure" target="_blank" class="nav-icn">GitHub</a>
+      
+    
+  
+  <span class="copyright">2015-2020 All rights reserved @kzysure</span>
+</footer>
+  </div>
+</body>
+</html>

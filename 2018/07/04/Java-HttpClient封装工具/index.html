@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Java/HttpClient封装工具 | kzysure</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="此工具来次本人风险项目中的实践，记录下来，备用import java.io.BufferedReader; import java.io.IOException; import java.io.InputStreamReader; import java.net.URI; import java.util.ArrayList; import java.util.Iterator; import j">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java&#x2F;HttpClient封装工具">
+<meta property="og:url" content="http://www.kzysure.cn/2018/07/04/Java-HttpClient%E5%B0%81%E8%A3%85%E5%B7%A5%E5%85%B7/index.html">
+<meta property="og:site_name" content="kzysure">
+<meta property="og:description" content="此工具来次本人风险项目中的实践，记录下来，备用import java.io.BufferedReader; import java.io.IOException; import java.io.InputStreamReader; import java.net.URI; import java.util.ArrayList; import java.util.Iterator; import j">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2018-07-04T12:00:55.000Z">
+<meta property="article:modified_time" content="2020-03-08T12:06:51.436Z">
+<meta property="article:author" content="kzysure">
+<meta name="twitter:card" content="summary">
+  
+  <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
+  <script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+      document.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightBlock(block);
+      });
+    });
+  </script>
+  
+<link rel="stylesheet" href="/css/index.css">
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body style="
+
+
+  background-color: #eff0f6
+
+">
+  <div id="container">
+    <nav id="nav">
+  <header class="header">
+    <a href="/" class="title">kzysure @生睿</a>
+  </header>
+  <div class="ctnWrap">
+    <div class="icons">
+      
+        
+          
+            <a href="https://github.com/kzysure" target="_blank" class="nav-icn iconfont icon-github"></a>
+          
+        
+      
+    </div>
+    <div class="menu">
+      
+        
+            <a href="/" class="nav-menu ">主页</a>
+          
+        
+            <a href="/archives" class="nav-menu ">归档</a>
+          
+        
+            <a href="/about" class="nav-menu ">关于我</a>
+          
+        
+      
+    </div>
+  </div>
+</nav>
+    <div id="main"><section class="article">
+  <h2 class="title">Java/HttpClient封装工具</h2>
+  <p class="sub">7月 4, 2018</p>
+  <article class="content">
+    <h2 id="此工具来次本人风险项目中的实践，记录下来，备用"><a href="#此工具来次本人风险项目中的实践，记录下来，备用" class="headerlink" title="此工具来次本人风险项目中的实践，记录下来，备用"></a>此工具来次本人风险项目中的实践，记录下来，备用</h2><pre><code>import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+
+import org.apache.http.HttpEntity;
+import org.apache.http.HttpResponse;
+import org.apache.http.HttpStatus;
+import org.apache.http.NameValuePair;
+import org.apache.http.StatusLine;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.entity.UrlEncodedFormEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.message.BasicNameValuePair;
+import org.apache.http.protocol.HTTP;
+import org.apache.http.util.EntityUtils;
+import org.apache.log4j.Logger;
+
+/**
+ * HttpClient工具类
+ */
+public class HttpUtil {
+
+    private static Logger logger = Logger.getLogger(HttpUtil.class);
+
+    /**
+     * get请求
+     * @return
+     */
+    public static String doGet(String url) {
+        try {
+            HttpClient client = new DefaultHttpClient();
+            //发送get请求
+            HttpGet request = new HttpGet(url);
+            HttpResponse response = client.execute(request);
+
+            /**请求发送成功，并得到响应**/
+            if (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) {
+                /**读取服务器返回过来的json字符串数据**/
+                String strResult = EntityUtils.toString(response.getEntity());
+
+                return strResult;
+            }
+        } 
+        catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return null;
+    }
+
+    /**
+     * post请求(用于key-value格式的参数)
+     * @param url
+     * @param params
+     * @return
+     */
+    public static String doPost(String url, Map params){
+
+        BufferedReader in = null;  
+        try {  
+            // 定义HttpClient  
+            HttpClient client = new DefaultHttpClient();  
+            // 实例化HTTP方法  
+            HttpPost request = new HttpPost();  
+            request.setURI(new URI(url));
+
+            //设置参数
+            List&lt;NameValuePair&gt; nvps = new ArrayList&lt;NameValuePair&gt;(); 
+            for (Iterator iter = params.keySet().iterator(); iter.hasNext();) {
+                String name = (String) iter.next();
+                String value = String.valueOf(params.get(name));
+                nvps.add(new BasicNameValuePair(name, value));
+
+                //System.out.println(name +&quot;-&quot;+value);
+            }
+            request.setEntity(new UrlEncodedFormEntity(nvps,HTTP.UTF_8));
+
+            HttpResponse response = client.execute(request);  
+            int code = response.getStatusLine().getStatusCode();
+            if(code == 200){    //请求成功
+                in = new BufferedReader(new InputStreamReader(response.getEntity()  
+                        .getContent(),&quot;utf-8&quot;));
+                StringBuffer sb = new StringBuffer(&quot;&quot;);  
+                String line = &quot;&quot;;  
+                String NL = System.getProperty(&quot;line.separator&quot;);  
+                while ((line = in.readLine()) != null) {  
+                    sb.append(line + NL);  
+                }
+
+                in.close();  
+
+                return sb.toString();
+            }
+            else{    //
+                System.out.println(&quot;状态码：&quot; + code);
+                return null;
+            }
+        }
+        catch(Exception e){
+            e.printStackTrace();
+
+            return null;
+        }
+    }
+
+    /**
+     * post请求（用于请求json格式的参数）
+     * @param url
+     * @param params
+     * @return
+     */
+    public static String doPost(String url, String params) throws Exception {
+
+        CloseableHttpClient httpclient = HttpClients.createDefault();
+        HttpPost httpPost = new HttpPost(url);// 创建httpPost   
+        httpPost.setHeader(&quot;Accept&quot;, &quot;application/json&quot;); 
+        httpPost.setHeader(&quot;Content-Type&quot;, &quot;application/json&quot;);
+        String charSet = &quot;UTF-8&quot;;
+        StringEntity entity = new StringEntity(params, charSet);
+        httpPost.setEntity(entity);        
+        CloseableHttpResponse response = null;
+
+        try {
+
+            response = httpclient.execute(httpPost);
+            StatusLine status = response.getStatusLine();
+            int state = status.getStatusCode();
+            if (state == HttpStatus.SC_OK) {
+                HttpEntity responseEntity = response.getEntity();
+                String jsonString = EntityUtils.toString(responseEntity);
+                return jsonString;
+            }
+            else{
+                 logger.error(&quot;请求返回:&quot;+state+&quot;(&quot;+url+&quot;)&quot;);
+            }
+        }
+        finally {
+            if (response != null) {
+                try {
+                    response.close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+            try {
+                httpclient.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
+    }
+
+}</code></pre>
+  </article>
+  <footer class="f-cf">
+    
+      <a href="/2018/12/11/%E8%BF%90%E7%BB%B4-%E9%80%9A%E8%BF%87Docker%E8%BF%90%E8%A1%8CRocketMq/" class="link f-fl">⟵运维/通过Docker运行RocketMq</a>
+    
+    
+      <a href="/2018/06/13/Java-%E5%B1%82%E7%BA%A7%E8%AE%A1%E7%AE%97%E5%B7%A5%E5%85%B7%E7%B1%BB/" class="link f-fr">Java/层级计算工具类⟶</a>
+    
+  </footer>
+</section></div>
+    <footer id="footer" class="f-cf">
+  kzysure@kzysure.com
+  
+    
+      
+        · <a href="https://github.com/kzysure" target="_blank" class="nav-icn">GitHub</a>
+      
+    
+  
+  <span class="copyright">2015-2020 All rights reserved @kzysure</span>
+</footer>
+  </div>
+</body>
+</html>

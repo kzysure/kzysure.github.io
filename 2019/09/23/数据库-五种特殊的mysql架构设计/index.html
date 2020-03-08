@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>数据库/五种特殊的mysql架构设计 | kzysure</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="五种特殊的mysql架构设计1. Mysql+分布式Proxy扩展 即通过mysql集群加中间件的方式搭建分布式高可用的数据库集群常见的集群方案有pxc和replication两种方案  pxc集群注重高可用，一致性强，但是并发性能差，适合并发量不太大而且数据价值高的场景repliaction集群弱一致性，但是读写分离，并发性能好，写性能接近单节点mysql，只要多写binlog2. 数据归档，冷">
+<meta property="og:type" content="article">
+<meta property="og:title" content="数据库&#x2F;五种特殊的mysql架构设计">
+<meta property="og:url" content="http://www.kzysure.cn/2019/09/23/%E6%95%B0%E6%8D%AE%E5%BA%93-%E4%BA%94%E7%A7%8D%E7%89%B9%E6%AE%8A%E7%9A%84mysql%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/index.html">
+<meta property="og:site_name" content="kzysure">
+<meta property="og:description" content="五种特殊的mysql架构设计1. Mysql+分布式Proxy扩展 即通过mysql集群加中间件的方式搭建分布式高可用的数据库集群常见的集群方案有pxc和replication两种方案  pxc集群注重高可用，一致性强，但是并发性能差，适合并发量不太大而且数据价值高的场景repliaction集群弱一致性，但是读写分离，并发性能好，写性能接近单节点mysql，只要多写binlog2. 数据归档，冷">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-09-23T02:40:48.000Z">
+<meta property="article:modified_time" content="2020-03-08T13:41:20.541Z">
+<meta property="article:author" content="kzysure">
+<meta name="twitter:card" content="summary">
+  
+  <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
+  <script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+      document.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightBlock(block);
+      });
+    });
+  </script>
+  
+<link rel="stylesheet" href="/css/index.css">
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body style="
+
+
+  background-color: #eff0f6
+
+">
+  <div id="container">
+    <nav id="nav">
+  <header class="header">
+    <a href="/" class="title">kzysure @生睿</a>
+  </header>
+  <div class="ctnWrap">
+    <div class="icons">
+      
+        
+          
+            <a href="https://github.com/kzysure" target="_blank" class="nav-icn iconfont icon-github"></a>
+          
+        
+      
+    </div>
+    <div class="menu">
+      
+        
+            <a href="/" class="nav-menu ">主页</a>
+          
+        
+            <a href="/archives" class="nav-menu ">归档</a>
+          
+        
+            <a href="/about" class="nav-menu ">关于我</a>
+          
+        
+      
+    </div>
+  </div>
+</nav>
+    <div id="main"><section class="article">
+  <h2 class="title">数据库/五种特殊的mysql架构设计</h2>
+  <p class="sub">9月 23, 2019</p>
+  <article class="content">
+    <h1 id="五种特殊的mysql架构设计"><a href="#五种特殊的mysql架构设计" class="headerlink" title="五种特殊的mysql架构设计"></a>五种特殊的mysql架构设计</h1><h2 id="1-Mysql-分布式Proxy扩展"><a href="#1-Mysql-分布式Proxy扩展" class="headerlink" title="1. Mysql+分布式Proxy扩展"></a>1. Mysql+分布式Proxy扩展</h2><blockquote>
+<p>即通过mysql集群加中间件的方式搭建分布式高可用的数据库集群<br>常见的集群方案有pxc和replication两种方案</p>
+</blockquote>
+<h5 id="pxc集群注重高可用，一致性强，但是并发性能差，适合并发量不太大而且数据价值高的场景"><a href="#pxc集群注重高可用，一致性强，但是并发性能差，适合并发量不太大而且数据价值高的场景" class="headerlink" title="pxc集群注重高可用，一致性强，但是并发性能差，适合并发量不太大而且数据价值高的场景"></a>pxc集群注重高可用，一致性强，但是并发性能差，适合并发量不太大而且数据价值高的场景</h5><h5 id="repliaction集群弱一致性，但是读写分离，并发性能好，写性能接近单节点mysql，只要多写binlog"><a href="#repliaction集群弱一致性，但是读写分离，并发性能好，写性能接近单节点mysql，只要多写binlog" class="headerlink" title="repliaction集群弱一致性，但是读写分离，并发性能好，写性能接近单节点mysql，只要多写binlog"></a>repliaction集群弱一致性，但是读写分离，并发性能好，写性能接近单节点mysql，只要多写binlog</h5><h2 id="2-数据归档，冷热数据分离"><a href="#2-数据归档，冷热数据分离" class="headerlink" title="2. 数据归档，冷热数据分离"></a>2. 数据归档，冷热数据分离</h2><blockquote>
+<p>在系统不断增长的情况下，为了保证数据库的性能，需要将冷热数据进行分离，常见的归档方式有mangodb和tukudb</p>
+</blockquote>
+<h4 id="mangodb：兼顾读写性能，不支持事务（mangodb4-0支持，但是不建议尝试），压缩比为innodb的14倍数"><a href="#mangodb：兼顾读写性能，不支持事务（mangodb4-0支持，但是不建议尝试），压缩比为innodb的14倍数" class="headerlink" title="mangodb：兼顾读写性能，不支持事务（mangodb4.0支持，但是不建议尝试），压缩比为innodb的14倍数"></a>mangodb：兼顾读写性能，不支持事务（mangodb4.0支持，但是不建议尝试），压缩比为innodb的14倍数</h4><h4 id="tukudb：写入是mysql9倍，压缩比为mysql14倍，相对mangodb更加稳定"><a href="#tukudb：写入是mysql9倍，压缩比为mysql14倍，相对mangodb更加稳定" class="headerlink" title="tukudb：写入是mysql9倍，压缩比为mysql14倍，相对mangodb更加稳定"></a>tukudb：写入是mysql9倍，压缩比为mysql14倍，相对mangodb更加稳定</h4><h2 id="3-Mysql-缓存（常见的有Redis、Memcached）高并发架构"><a href="#3-Mysql-缓存（常见的有Redis、Memcached）高并发架构" class="headerlink" title="3. Mysql+缓存（常见的有Redis、Memcached）高并发架构"></a>3. Mysql+缓存（常见的有Redis、Memcached）高并发架构</h2><blockquote>
+<p>在高并发读写系统中，mysql在单个时刻可能无法完成大量的读写，可以通过缓存中间件缓存写请求和缓存的读热数据</p>
+</blockquote>
+<h2 id="4-Mysql-小文件系统"><a href="#4-Mysql-小文件系统" class="headerlink" title="4. Mysql+小文件系统"></a>4. Mysql+小文件系统</h2><blockquote>
+<p>在某些系统中可能需要存储大量小文件，可以采用mysql+mangodb（Binary（小于16mb） BSON或者GridFS），大文件可以用hadoop的hdfs</p>
+</blockquote>
+<h2 id="5-Mysql-inforbright统计分析架构"><a href="#5-Mysql-inforbright统计分析架构" class="headerlink" title="5. Mysql+inforbright统计分析架构"></a>5. Mysql+inforbright统计分析架构</h2><blockquote>
+<p>当系统存在系统统计需求时，需要在某个时刻分析大量数据，可以将mysql数据（oltp）转入inforbright（olap）</p>
+</blockquote>
+
+  </article>
+  <footer class="f-cf">
+    
+    
+      <a href="/2019/07/08/guava%E5%9C%A8%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84%E4%BA%8C%E7%BA%A7%E7%BC%93%E5%AD%98%E7%9A%84%E5%AE%9E%E8%B7%B5/" class="link f-fr">guava在系统中的二级缓存的实践⟶</a>
+    
+  </footer>
+</section></div>
+    <footer id="footer" class="f-cf">
+  kzysure@kzysure.com
+  
+    
+      
+        · <a href="https://github.com/kzysure" target="_blank" class="nav-icn">GitHub</a>
+      
+    
+  
+  <span class="copyright">2015-2020 All rights reserved @kzysure</span>
+</footer>
+  </div>
+</body>
+</html>

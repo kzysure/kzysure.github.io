@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>guava在系统中的二级缓存的实践 | kzysure</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="前言    在信息发展如此迅猛的背景下，软件开发也在面临着各种压力，本次讨论的是在高并发场景的二级缓存实现   在大多数开发者眼里，一提起缓存，大多是redis、Memcached等缓存工具，由于运行在内存里，相对于传统的mysql等rdbms数据库具有更强的性能和并发性。  但是，古话说：人无完人，金无足赤。redis也一样，虽然性能很优秀，但是在一个高并发应用中，如果仅仅依靠redis做缓">
+<meta property="og:type" content="article">
+<meta property="og:title" content="guava在系统中的二级缓存的实践">
+<meta property="og:url" content="http://www.kzysure.cn/2019/07/08/guava%E5%9C%A8%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84%E4%BA%8C%E7%BA%A7%E7%BC%93%E5%AD%98%E7%9A%84%E5%AE%9E%E8%B7%B5/index.html">
+<meta property="og:site_name" content="kzysure">
+<meta property="og:description" content="前言    在信息发展如此迅猛的背景下，软件开发也在面临着各种压力，本次讨论的是在高并发场景的二级缓存实现   在大多数开发者眼里，一提起缓存，大多是redis、Memcached等缓存工具，由于运行在内存里，相对于传统的mysql等rdbms数据库具有更强的性能和并发性。  但是，古话说：人无完人，金无足赤。redis也一样，虽然性能很优秀，但是在一个高并发应用中，如果仅仅依靠redis做缓">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-07-08T12:50:50.000Z">
+<meta property="article:modified_time" content="2020-03-08T13:22:27.376Z">
+<meta property="article:author" content="kzysure">
+<meta name="twitter:card" content="summary">
+  
+  <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
+  <script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+      document.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightBlock(block);
+      });
+    });
+  </script>
+  
+<link rel="stylesheet" href="/css/index.css">
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body style="
+
+
+  background-color: #eff0f6
+
+">
+  <div id="container">
+    <nav id="nav">
+  <header class="header">
+    <a href="/" class="title">kzysure @生睿</a>
+  </header>
+  <div class="ctnWrap">
+    <div class="icons">
+      
+        
+          
+            <a href="https://github.com/kzysure" target="_blank" class="nav-icn iconfont icon-github"></a>
+          
+        
+      
+    </div>
+    <div class="menu">
+      
+        
+            <a href="/" class="nav-menu ">主页</a>
+          
+        
+            <a href="/archives" class="nav-menu ">归档</a>
+          
+        
+            <a href="/about" class="nav-menu ">关于我</a>
+          
+        
+      
+    </div>
+  </div>
+</nav>
+    <div id="main"><section class="article">
+  <h2 class="title">guava在系统中的二级缓存的实践</h2>
+  <p class="sub">7月 8, 2019</p>
+  <article class="content">
+    <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><blockquote>
+<p>   在信息发展如此迅猛的背景下，软件开发也在面临着各种压力，本次讨论的是在高并发场景的二级缓存实现<br>   在大多数开发者眼里，一提起缓存，大多是redis、Memcached等缓存工具，由于运行在内存里，相对于传统的mysql等rdbms数据库具有更强的性能和并发性。  但是，古话说：人无完人，金无足赤。redis也一样，虽然性能很优秀，但是在一个高并发应用中，如果仅仅依靠redis做缓存，其巨大的网络io消耗则是不可忽视的缺点。<br>  基于以上，在我们开发一个高并发应用时，往往可以选择通过多级缓存的方式，减轻redis、rdbms的压力，实现更大的系统吞吐量。</p>
+</blockquote>
+<blockquote>
+<p>我的思路是用guava存储热数据,减轻请求redis的io耗时，并提高系统的响应速度，redis作为二级缓存，而mysql则负责提供缓存所需的冷数据。</p>
+</blockquote>
+<h2 id="实现"><a href="#实现" class="headerlink" title="实现"></a>实现</h2><h3 id="添加依赖"><a href="#添加依赖" class="headerlink" title="添加依赖"></a>添加依赖</h3><pre><code>&lt;dependency&gt;
+            &lt;groupId&gt;com.google.guava&lt;/groupId&gt;
+            &lt;artifactId&gt;guava&lt;/artifactId&gt;
+            &lt;version&gt;18.0&lt;/version&gt;
+        &lt;/dependency&gt;</code></pre><h3 id="创建缓存的Bean"><a href="#创建缓存的Bean" class="headerlink" title="创建缓存的Bean"></a>创建缓存的Bean</h3><p>@Component<br>@Slf4j<br>public class LocalEnhancedCacheHolder {</p>
+<pre><code>@Value(&quot;${guava.cache.max.size}&quot;)
+private Integer maxCacheSize;
+
+@Value(&quot;${guava.cache.timeout}&quot;)
+private Integer guavaCacheTimeout;
+
+/**
+ * 字符串类型取值, k-&gt;v 只支持字符串存取，避免复杂化
+ */
+private LoadingCache&lt;String, String&gt; stringDbCacheContainer;
+
+/**
+ * hash 数据缓存, 展示使用多key 作为 guava 的缓存key
+ */
+private LoadingCache&lt;HashDbItemEntry, byte[]&gt; hashDbCacheContainer;
+
+@Resource
+private RedisTemplate redisTemplate;
+
+/**
+ * 值为空 字符串标识
+ */
+public static final String EMPTY_VALUE_STRING = &quot;&quot;;
+
+/**
+ * 值为空 字节标识
+ */
+public static final byte[] EMPTY_VALUE_BYTES = new byte[0];
+
+@PostConstruct
+public void init() {
+
+    Integer dbCount = 2;
+
+    stringDbCacheContainer = CacheBuilder.newBuilder()
+            .expireAfterWrite(guavaCacheTimeout, TimeUnit.SECONDS)
+            .maximumSize(maxCacheSize)
+            .build(new CacheLoader&lt;String, String&gt;() {
+                @Override
+                public String load(String key) throws Exception {
+                    log.info(&quot;【缓存】从redis获取配置:{}&quot;, key);
+                    String value = redisTemplate.get(key);
+                    return StringUtils.defaultIfBlank(value, EMPTY_VALUE_STRING);
+                }
+            });
+
+    hashDbCacheContainer = CacheBuilder.newBuilder()
+            .expireAfterWrite(guavaCacheTimeout, TimeUnit.SECONDS)
+            .maximumSize(maxCacheSize / dbCount)
+            .build(new CacheLoader&lt;HashDbItemEntry, byte[]&gt;() {
+                @Override
+                public byte[] load(HashDbItemEntry keyHolder) throws Exception {
+                    log.info(&quot;【缓存】从redis获取配置:{}&quot;, keyHolder);
+                    byte[] valueBytes = redisTemplate.hgetValue(
+                                            keyHolder.getBucketKey(), keyHolder.getSlotKey());
+                    if(valueBytes == null) {
+                        valueBytes = EMPTY_VALUE_BYTES;
+                    }
+                    return valueBytes;
+                }
+            });
+}
+
+/**
+ * 获取k-v中的缓存值
+ *
+ * @param key 键
+ * @return 缓存值，没有值时，返回 null
+ */
+public String getCache(String key) {
+    try {
+        return stringDbCacheContainer.get(key);
+    } catch (ExecutionException e) {
+        log.error(&quot;【缓存】获取缓存异常:{}, ex:{}&quot;, key, e);
+        throw new RuntimeException(e);
+    }
+}
+
+/**
+ * 放入缓存，此处暂只实现为向redis写入值
+ *
+ * @param key 缓存key
+ * @param value 缓存value
+ */
+public void putCache(String key, String value) {
+    redisTemplate.set(key, value, 0L);
+}
+
+/**
+ * 放入缓存带超时时间设置，此处暂只实现为向redis写入值
+ *
+ * @param key 缓存key
+ * @param value 缓存value
+ * @param timeout 超时时间，单位 s
+ */
+public void putCache(String key, String value, Long timeout) {
+    redisTemplate.set(key, value, timeout);
+}
+
+/**
+ * 删除单个kv缓存
+ *
+ * @param key 缓存键
+ */
+public void removeCache(String key) {
+    redisTemplate.remove(key);
+}
+
+/**
+ * 批量删除单个kv缓存
+ *
+ * @param keyList 缓存键 列表，以 管道形式删除，性能更高
+ */
+public void removeCache(Collection&lt;String&gt; keyList) {
+    redisTemplate.remove(keyList);
+}
+
+/**
+ * 从hash数据库中获取缓存值
+ *
+ * @param bucketKey 桶key, 对应一系列值 k-&gt;v
+ * @param slotKey 槽key, 对应具体的缓存值
+ * @return 缓存值
+ */
+public byte[] getCacheFromHash(String bucketKey, String slotKey) {
+    HashDbItemEntry entry = new HashDbItemEntry(bucketKey, slotKey);
+    try {
+        return hashDbCacheContainer.get(entry);
+    } catch (ExecutionException e) {
+        log.error(&quot;【缓存】获取缓存异常:{}, ex:{}&quot;, entry, e);
+        throw new RuntimeException(e);
+    }
+}
+
+/**
+ * hash 数据结构存储
+ *
+ *      value 暂不存储相应值，只做查询使用
+ */
+class HashDbItemEntry {
+    private String bucketKey;
+    private String slotKey;
+    private Object value;
+
+    public HashDbItemEntry(String bucketKey, String slotKey) {
+        this.bucketKey = bucketKey;
+        this.slotKey = slotKey;
+    }
+
+    public String getBucketKey() {
+        return bucketKey;
+    }
+
+    public String getSlotKey() {
+        return slotKey;
+    }
+
+    public Object getValue() {
+        return value;
+    }
+
+    // 必重写 equals &amp; hashCode, 否则缓存将无法复用
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        HashDbItemEntry that = (HashDbItemEntry) o;
+        return Objects.equals(bucketKey, that.bucketKey) &amp;&amp;
+                Objects.equals(slotKey, that.slotKey) &amp;&amp;
+                Objects.equals(value, that.value);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(bucketKey, slotKey, value);
+    }
+
+    @Override
+    public String toString() {
+            return &quot;HashDbItemEntry{&quot; +
+                &quot;bucketKey=&apos;&quot; + bucketKey + &apos;\&apos;&apos; +
+                &quot;, slotKey=&apos;&quot; + slotKey + &apos;\&apos;&apos; +
+                &quot;, value=&quot; + value +
+                &apos;}&apos;;
+    }
+}</code></pre><p>}</p>
+
+  </article>
+  <footer class="f-cf">
+    
+      <a href="/2019/09/23/%E6%95%B0%E6%8D%AE%E5%BA%93-%E4%BA%94%E7%A7%8D%E7%89%B9%E6%AE%8A%E7%9A%84mysql%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/" class="link f-fl">⟵数据库/五种特殊的mysql架构设计</a>
+    
+    
+      <a href="/2019/05/16/%E6%95%B0%E6%8D%AE%E5%BA%93-PXC%E9%9B%86%E7%BE%A4%E6%90%AD%E5%BB%BA%E8%AE%B0%E5%BD%95/" class="link f-fr">数据库/PXC集群搭建记录⟶</a>
+    
+  </footer>
+</section></div>
+    <footer id="footer" class="f-cf">
+  kzysure@kzysure.com
+  
+    
+      
+        · <a href="https://github.com/kzysure" target="_blank" class="nav-icn">GitHub</a>
+      
+    
+  
+  <span class="copyright">2015-2020 All rights reserved @kzysure</span>
+</footer>
+  </div>
+</body>
+</html>

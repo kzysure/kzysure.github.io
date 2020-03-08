@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>中间件/Redis笔记 | kzysure</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="redis的特点：1.高性能；2.支持多种数据结构;3.支持分布式;4.功能丰富;  Redis的八个特性1.速度快（10wops｜十万读写每秒）  在内存中操作数据（速度比操作硬盘快很多） 基于C语言编写   单线程（避免多线程之间的创建和切换，内存中单线程足以）   2.持久化 redis工作在内存中，但是会把数据异步存储在硬盘中进行持久化  3.多种数据结构 BitMaps位图&#x2F;GEO地理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="中间件&#x2F;Redis笔记">
+<meta property="og:url" content="http://www.kzysure.cn/2017/06/19/%E4%B8%AD%E9%97%B4%E4%BB%B6-Redis%E7%AC%94%E8%AE%B0/index.html">
+<meta property="og:site_name" content="kzysure">
+<meta property="og:description" content="redis的特点：1.高性能；2.支持多种数据结构;3.支持分布式;4.功能丰富;  Redis的八个特性1.速度快（10wops｜十万读写每秒）  在内存中操作数据（速度比操作硬盘快很多） 基于C语言编写   单线程（避免多线程之间的创建和切换，内存中单线程足以）   2.持久化 redis工作在内存中，但是会把数据异步存储在硬盘中进行持久化  3.多种数据结构 BitMaps位图&#x2F;GEO地理">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="evernotecid://7CAEFF24-C1D3-40DA-B9C7-2B68ED8A9473/appyinxiangcom/21099096/ENResource/p191">
+<meta property="og:image" content="evernotecid://7CAEFF24-C1D3-40DA-B9C7-2B68ED8A9473/appyinxiangcom/21099096/ENResource/p192">
+<meta property="og:image" content="evernotecid://7CAEFF24-C1D3-40DA-B9C7-2B68ED8A9473/appyinxiangcom/21099096/ENResource/p193">
+<meta property="og:image" content="evernotecid://7CAEFF24-C1D3-40DA-B9C7-2B68ED8A9473/appyinxiangcom/21099096/ENResource/p194">
+<meta property="og:image" content="evernotecid://7CAEFF24-C1D3-40DA-B9C7-2B68ED8A9473/appyinxiangcom/21099096/ENResource/p195">
+<meta property="article:published_time" content="2017-06-19T13:54:33.000Z">
+<meta property="article:modified_time" content="2020-03-08T13:55:35.965Z">
+<meta property="article:author" content="kzysure">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="evernotecid://7CAEFF24-C1D3-40DA-B9C7-2B68ED8A9473/appyinxiangcom/21099096/ENResource/p191">
+  
+  <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
+  <script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+      document.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightBlock(block);
+      });
+    });
+  </script>
+  
+<link rel="stylesheet" href="/css/index.css">
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body style="
+
+
+  background-color: #eff0f6
+
+">
+  <div id="container">
+    <nav id="nav">
+  <header class="header">
+    <a href="/" class="title">kzysure @生睿</a>
+  </header>
+  <div class="ctnWrap">
+    <div class="icons">
+      
+        
+          
+            <a href="https://github.com/kzysure" target="_blank" class="nav-icn iconfont icon-github"></a>
+          
+        
+      
+    </div>
+    <div class="menu">
+      
+        
+            <a href="/" class="nav-menu ">主页</a>
+          
+        
+            <a href="/archives" class="nav-menu ">归档</a>
+          
+        
+            <a href="/about" class="nav-menu ">关于我</a>
+          
+        
+      
+    </div>
+  </div>
+</nav>
+    <div id="main"><section class="article">
+  <h2 class="title">中间件/Redis笔记</h2>
+  <p class="sub">6月 19, 2017</p>
+  <article class="content">
+    <blockquote>
+<p>redis的特点：1.高性能；2.支持多种数据结构;3.支持分布式;4.功能丰富;</p>
+</blockquote>
+<h2 id="Redis的八个特性"><a href="#Redis的八个特性" class="headerlink" title="Redis的八个特性"></a>Redis的八个特性</h2><h3 id="1-速度快（10wops｜十万读写每秒）"><a href="#1-速度快（10wops｜十万读写每秒）" class="headerlink" title="1.速度快（10wops｜十万读写每秒）"></a>1.速度快（10wops｜十万读写每秒）</h3><blockquote>
+<ol>
+<li>在内存中操作数据（速度比操作硬盘快很多）</li>
+<li>基于C语言编写  </li>
+<li>单线程（避免多线程之间的创建和切换，内存中单线程足以）</li>
+</ol>
+</blockquote>
+<h3 id="2-持久化"><a href="#2-持久化" class="headerlink" title="2.持久化"></a>2.持久化</h3><blockquote>
+<p>redis工作在内存中，但是会把数据异步存储在硬盘中进行持久化</p>
+</blockquote>
+<h3 id="3-多种数据结构"><a href="#3-多种数据结构" class="headerlink" title="3.多种数据结构"></a>3.多种数据结构</h3><blockquote>
+<p>BitMaps位图/GEO地理位置/HyperLogLog超小内存唯一计数</p>
+</blockquote>
+<h3 id="4-支持多语言"><a href="#4-支持多语言" class="headerlink" title="4.支持多语言"></a>4.支持多语言</h3><blockquote>
+<p>支持PHP/Java/Python/Lua/Ruby/NodeJs</p>
+</blockquote>
+<h3 id="5-功能丰富"><a href="#5-功能丰富" class="headerlink" title="5.功能丰富"></a>5.功能丰富</h3><h3 id="6-简单"><a href="#6-简单" class="headerlink" title="6.简单"></a>6.简单</h3><blockquote>
+<p>redis不依赖于任何外部库，并且是单线程相对简单</p>
+</blockquote>
+<h3 id="7-主从复制"><a href="#7-主从复制" class="headerlink" title="7.主从复制"></a>7.主从复制</h3><blockquote>
+<p>可以进行主从复制，实现高可用</p>
+</blockquote>
+<h3 id="8-高可用-分布式"><a href="#8-高可用-分布式" class="headerlink" title="8.高可用,分布式"></a>8.高可用,分布式</h3><blockquote>
+<p>Redis Sentinel 高可用，Redis Cluster 分布式</p>
+</blockquote>
+<hr>
+<h3 id="Redis的使用场景"><a href="#Redis的使用场景" class="headerlink" title="Redis的使用场景"></a>Redis的使用场景</h3><ul>
+<li><p>缓存系统</p>
+<blockquote>
+<p>将热数据放在redis，增加系统抗并发能力，并提高响应速度<br><img src="evernotecid://7CAEFF24-C1D3-40DA-B9C7-2B68ED8A9473/appyinxiangcom/21099096/ENResource/p191" alt="4f3d947c40c4e48c57579a7cb387ef92.png"></p>
+</blockquote>
+</li>
+<li><p>计数器</p>
+<blockquote>
+<p>微博的转发数/点赞数可以用redis计数 -&gt; redis 的incr功能<br><img src="evernotecid://7CAEFF24-C1D3-40DA-B9C7-2B68ED8A9473/appyinxiangcom/21099096/ENResource/p192" alt="092a2faca3d6cbf7818ecb476d23b086.png"></p>
+</blockquote>
+</li>
+<li><p>消息队列</p>
+</li>
+<li><p>redis可用于消息队列功能，可以实现发布订阅，阻塞队列，适用于轻量级mq需求</p>
+</li>
+<li><p><img src="evernotecid://7CAEFF24-C1D3-40DA-B9C7-2B68ED8A9473/appyinxiangcom/21099096/ENResource/p193" alt="7e8240725ee0fba0a0aa62635a1f5ab9.png"></p>
+</li>
+<li><p>排行榜</p>
+<blockquote>
+<p>redis适合用于社交网络</p>
+</blockquote>
+</li>
+<li><p>实时系统</p>
+<blockquote>
+<p>布隆过滤器</p>
+</blockquote>
+</li>
+</ul>
+<hr>
+<h3 id="Redis启动"><a href="#Redis启动" class="headerlink" title="Redis启动"></a>Redis启动</h3><p><code>redis-server</code></p>
+<blockquote>
+<p>验证进程：ps -ef |grep 查看进程<br>验证监听：netstat -antp |grep redis<br>连接验证：redis-cli -h {ip} -p {端口} ping</p>
+</blockquote>
+<h4 id="常用配置"><a href="#常用配置" class="headerlink" title="常用配置"></a>常用配置</h4><blockquote>
+<p>是否以守护进程启动：<code>daemonize</code>｜推荐yes<br>redis的监听端口: <code>port</code> ｜ 默认是6379<br>日志：<code>logfile</code> 指定日志名称<br>工作目录：<code>dir</code></p>
+</blockquote>
+<hr>
+<h2 id="Redis-API的使用和理解"><a href="#Redis-API的使用和理解" class="headerlink" title="Redis API的使用和理解"></a>Redis API的使用和理解</h2><h3 id="1-通用命令"><a href="#1-通用命令" class="headerlink" title="1.通用命令"></a>1.通用命令</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">1. keys &#123;*&#125; 查看键（生产环境不推荐使用，消耗性能大，可以在从节点使用）</span><br><span class="line">2. dbsize 查看键的数量</span><br><span class="line">3. del &#123;key&#125; 删除键 可删除多个</span><br><span class="line">4. expire &#123;key&#125; &#123;second&#125; 给键设定过期时间</span><br><span class="line">5.exists &#123;keys&#125; 查询键是否存在</span><br><span class="line">6. type &#123;key&#125; 查看数据类型</span><br><span class="line">7. mset &#123;k&#125; &#123;v&#125; &#123;k&#125; &#123;v&#125; &#123;k&#125; &#123;v&#125; ...... 设置多组键值对</span><br><span class="line">8. ttl &#123;key&#125; 查看key剩余过期时间</span><br><span class="line">9. persist &#123;key&#125; 去掉key的过期时间</span><br><span class="line">10. set &#123;key&#125; &#123;value&#125; 不管key存不存在都会设置</span><br><span class="line">11. setnx &#123;key&#125; &#123;value&#125; 只有key不存在时才设置</span><br><span class="line">12. set &#123;key&#125; &#123;value&#125; xx 只有key存在时才设置</span><br><span class="line">13. mget &#123;key1&#125; &#123;key2&#125; ... 批量获取</span><br><span class="line">14. getset &#123;key&#125; &#123;value&#125; 先获取再更新</span><br><span class="line">15. append &#123;key&#125; &#123;content&#125; 增加</span><br><span class="line">16. strlen &#123;key&#125; 返回字符串长度</span><br><span class="line">17. incrbyfloat &#123;key&#125; &#123;float&#125; 增加浮点数</span><br><span class="line">18.getrange &#123;key&#125; &#123;start&#125; &#123;end&#125; 获取字符串指定下标所有的值</span><br><span class="line">19.setrange &#123;key&#125; &#123;start&#125; &#123;end&#125; 设置字符串指定下标的值</span><br></pre></td></tr></table></figure>
+<h3 id="2-列表"><a href="#2-列表" class="headerlink" title="2.列表"></a>2.列表</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">lpush &#123;key&#125; &#123;val1&#125; &#123;val2&#125;.... 创建和添加key</span><br><span class="line">lpop &#123;key&#125; 从左边弹出一个元素（删除一个元素)</span><br><span class="line">rpop &#123;key&#125; 从右边弹出一个元素（删除一个元素)</span><br><span class="line">lrem &#123;key&#125; &#123;count&#125; </span><br><span class="line">lrange &#123;key&#125; &#123;start&#125; &#123;end&#125; 根据范围查询 （包括首尾） end为-1获取到最后一个</span><br><span class="line">llen获取列表长度</span><br><span class="line">lset &#123;key&#125; &#123;index&#125; &#123;new val&#125; 更改值</span><br><span class="line">使用场景：微博时间轴</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="3-字符串类型"><a href="#3-字符串类型" class="headerlink" title="3.字符串类型"></a>3.字符串类型</h3><blockquote>
+<p>可以存字符串和数值和bits还可以存json串（不大于512MB）<br>使用场景：缓存/计数器/分布式锁</p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">增：set &#123;key&#125; &#123;value&#125;</span><br><span class="line">删：del &#123;key&#125;</span><br><span class="line">查：get &#123;key&#125;</span><br><span class="line">整型数据操作：</span><br><span class="line">incr 增加1</span><br><span class="line">decr 减少1</span><br><span class="line">incrby &#123;key&#125; &#123;num&#125; 增加若干数量</span><br><span class="line">decrby &#123;key&#125; &#123;num&#125; 减少若干数量</span><br></pre></td></tr></table></figure>
+<h3 id="4-集合类型"><a href="#4-集合类型" class="headerlink" title="4.集合类型"></a>4.集合类型</h3><h3 id="5-哈希类型"><a href="#5-哈希类型" class="headerlink" title="5.哈希类型"></a>5.哈希类型</h3><blockquote>
+<p>结构：类似于MapMap<br><img src="evernotecid://7CAEFF24-C1D3-40DA-B9C7-2B68ED8A9473/appyinxiangcom/21099096/ENResource/p194" alt="47bf2ff45f598dae45c8ada1d6b57d48.png"><br><img src="evernotecid://7CAEFF24-C1D3-40DA-B9C7-2B68ED8A9473/appyinxiangcom/21099096/ENResource/p195" alt="9777e942497d9bfcd1081e71bab2f810.png"></p>
+</blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">hset &#123;key&#125; &#123;field&#125; &#123;value&#125; 设置hash</span><br><span class="line">hget &#123;key&#125; &#123;field&#125; 获取hash</span><br><span class="line">hgetall &#123;key&#125; 获取该key所有值 重命令 单线程压力大 推荐hmget</span><br><span class="line">hdel &#123;key&#125; &#123;field&#125;  删除该键所有属性或者某个域值</span><br><span class="line">hexists &#123;key&#125; &#123;field&#125; 查询该hash的某个域是否存在</span><br><span class="line">hlen &#123;key&#125; 获取hash 的域长度</span><br><span class="line">hmset &#123;key&#125; &#123;field&#125; &#123;value&#125;  &#123;field&#125; &#123;value&#125; ... 批量设置|时间复杂度 O(n)</span><br><span class="line">hmget &#123;key&#125; &#123;field&#125; &#123;field&#125; ... 批量获取</span><br><span class="line">hincrby &#123;key&#125; &#123;field&#125; &#123;value&#125; 增加</span><br><span class="line">hkeys &#123;key&#125; 返回hash key的所有key（filed）值</span><br><span class="line">hvals &#123;key&#125; 返回所有hash的值</span><br></pre></td></tr></table></figure>
+
+<h3 id="6-有序集合类型"><a href="#6-有序集合类型" class="headerlink" title="6.有序集合类型"></a>6.有序集合类型</h3><hr>
+
+  </article>
+  <footer class="f-cf">
+    
+      <a href="/2017/11/09/%E8%BF%90%E7%BB%B4-Docker%E5%9F%BA%E7%A1%80%E5%85%A5%E9%97%A8/" class="link f-fl">⟵运维/Docker基础入门</a>
+    
+    
+  </footer>
+</section></div>
+    <footer id="footer" class="f-cf">
+  kzysure@kzysure.com
+  
+    
+      
+        · <a href="https://github.com/kzysure" target="_blank" class="nav-icn">GitHub</a>
+      
+    
+  
+  <span class="copyright">2015-2020 All rights reserved @kzysure</span>
+</footer>
+  </div>
+</body>
+</html>

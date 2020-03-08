@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  
+  <title>Java/微服务安全学习 | kzysure</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  <meta name="description" content="微服务安全API API安全的目标[CIA]  机密性（Confientiality）## 确保信息只被预期的读者访问完整性（Integrity） ## 防止未授权的创建、删除和修改可用性（Availability）## 当用户需要访问API时，始终是可用的    常见的API风险  Sponnfing:欺骗&gt;伪装成某人Tampering: 干预&gt;将不希望修改的数据、消息或者数据改掉R">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Java&#x2F;微服务安全学习">
+<meta property="og:url" content="http://www.kzysure.cn/2019/02/15/Java-%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%AE%89%E5%85%A8%E5%AD%A6%E4%B9%A0/index.html">
+<meta property="og:site_name" content="kzysure">
+<meta property="og:description" content="微服务安全API API安全的目标[CIA]  机密性（Confientiality）## 确保信息只被预期的读者访问完整性（Integrity） ## 防止未授权的创建、删除和修改可用性（Availability）## 当用户需要访问API时，始终是可用的    常见的API风险  Sponnfing:欺骗&gt;伪装成某人Tampering: 干预&gt;将不希望修改的数据、消息或者数据改掉R">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2019-02-15T15:13:57.000Z">
+<meta property="article:modified_time" content="2020-03-08T12:15:42.839Z">
+<meta property="article:author" content="kzysure">
+<meta name="twitter:card" content="summary">
+  
+  <link rel="stylesheet" href="//cdn.bootcss.com/highlight.js/9.2.0/styles/github.min.css">
+  <script src="//cdn.bootcss.com/highlight.js/9.2.0/highlight.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+      document.querySelectorAll('pre code').forEach((block) => {
+        hljs.highlightBlock(block);
+      });
+    });
+  </script>
+  
+<link rel="stylesheet" href="/css/index.css">
+
+<meta name="generator" content="Hexo 4.2.0"></head>
+
+<body style="
+
+
+  background-color: #eff0f6
+
+">
+  <div id="container">
+    <nav id="nav">
+  <header class="header">
+    <a href="/" class="title">kzysure @生睿</a>
+  </header>
+  <div class="ctnWrap">
+    <div class="icons">
+      
+        
+          
+            <a href="https://github.com/kzysure" target="_blank" class="nav-icn iconfont icon-github"></a>
+          
+        
+      
+    </div>
+    <div class="menu">
+      
+        
+            <a href="/" class="nav-menu ">主页</a>
+          
+        
+            <a href="/archives" class="nav-menu ">归档</a>
+          
+        
+            <a href="/about" class="nav-menu ">关于我</a>
+          
+        
+      
+    </div>
+  </div>
+</nav>
+    <div id="main"><section class="article">
+  <h2 class="title">Java/微服务安全学习</h2>
+  <p class="sub">2月 15, 2019</p>
+  <article class="content">
+    <h1 id="微服务安全"><a href="#微服务安全" class="headerlink" title="微服务安全"></a>微服务安全</h1><h3 id="API"><a href="#API" class="headerlink" title="API"></a>API</h3><blockquote>
+<p>API安全的目标<strong>[CIA]</strong></p>
+<blockquote>
+<p>机密性（Confientiality）## 确保信息只被预期的读者访问<br>完整性（Integrity） ## 防止未授权的创建、删除和修改<br>可用性（Availability）## 当用户需要访问API时，始终是可用的</p>
+</blockquote>
+</blockquote>
+<blockquote>
+<p>常见的API风险</p>
+<blockquote>
+<p>Sponnfing:欺骗&gt;伪装成某人<br>Tampering: 干预&gt;将不希望修改的数据、消息或者数据改掉<br>Repudiation: 否认&gt;拒绝承认做过某事<br>Information Disclosure： 信息泄露&gt;将你希望保密的数据披露出来<br>Denial of service: 拒绝服务&gt;阻止用户访问信息和服务<br>Elevation of privilege: 越权&gt;做了你不希望他做的事情</p>
+</blockquote>
+</blockquote>
+<blockquote>
+<p>风险与安全机制的对应关系</p>
+<blockquote>
+<p>认证-&gt;[欺骗]：确定你的用户或者客户端真的是他们自己<br>授权-&gt;[信息泄露、干预、越权]：确保每个针对API的访问都是经过授权的<br>审计-&gt;[否认]：确保所有操作记录都被记录，以便追溯和监控<br>流控-&gt;[拒绝服务]：防止用户请求淹没你的API</p>
+</blockquote>
+</blockquote>
+<h4 id="流控"><a href="#流控" class="headerlink" title="流控"></a>流控</h4><blockquote>
+<p>流量控制是API安全的第一道屏障，防止非法用户通过大量的访问请求击溃后台服务.<br>示例代码如下：</p>
+</blockquote>
+<pre><code class="java"><span class="comment">/**</span>
+<span class="comment"> * 限流示例，当qps(每秒请求数量)超过1时，将丢弃请求并返回流控通知.</span>
+<span class="comment"> * <span class="doctag">@author</span> &lt;a href="mailto:kzysure@kzysure.com"&gt;kzysure&lt;/a&gt;</span>
+<span class="comment"> * <span class="doctag">@version</span> 1.0.0</span>
+<span class="comment"> * <span class="doctag">@date</span> 2020/1/7 10:55 上午</span>
+<span class="comment"> */</span>
+<span class="meta">@Component</span>
+<span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RateLimiterFilter</span> <span class="keyword">extends</span> <span class="title">OncePerRequestFilter</span> </span>{
+    <span class="keyword">private</span> String apiCode = <span class="string">"0000"</span>;
+    <span class="keyword">private</span> RateLimiter rateLimiter = RateLimiter.create(<span class="number">1</span>);
+
+    <span class="meta">@Override</span>
+    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doFilterInternal</span><span class="params">(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain)</span> <span class="keyword">throws</span> ServletException, IOException </span>{
+        <span class="keyword">if</span> (rateLimiter.tryAcquire()) {
+            filterChain.doFilter(httpServletRequest, httpServletResponse);
+        } <span class="keyword">else</span> {
+            httpServletResponse.setStatus(HttpStatus.TOO_MANY_REQUESTS.value());
+            httpServletResponse.setContentType(<span class="string">"application/json"</span>);
+            httpServletResponse.setCharacterEncoding(<span class="string">"UTF-8"</span>);
+            ResultMsg resultMsg = ResultMsg.error(apiCode);
+            resultMsg.setMsg(<span class="string">"请求太多，已被限流"</span>);
+            ObjectMapper objectMapper = <span class="keyword">new</span> ObjectMapper().configure(DeserializationFeature.ACCEPT_SINGLE_VALUE_AS_ARRAY, <span class="keyword">true</span>);
+
+            String responseBody = objectMapper.writeValueAsString(resultMsg);
+            httpServletResponse.getWriter().write(responseBody);
+
+            httpServletResponse.getWriter().flush();
+            <span class="keyword">return</span>;
+        }
+    }
+}</code></pre>
+<h4 id="认证"><a href="#认证" class="headerlink" title="认证"></a>认证</h4><blockquote>
+<p>认证是指加密传输用户信息，用于api认证<br>示例代码如下:  </p>
+</blockquote>
+<pre><code class="java"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AuthorizationFilter</span> <span class="keyword">extends</span> <span class="title">OncePerRequestFilter</span> </span>{
+    <span class="keyword">private</span> String apiCode = <span class="string">"0003"</span>;
+    <span class="meta">@Autowired</span>
+    <span class="keyword">private</span> UserService userService;
+
+    <span class="meta">@Override</span>
+    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">doFilterInternal</span><span class="params">(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain)</span> <span class="keyword">throws</span> ServletException, IOException </span>{
+        <span class="comment">/**</span>
+<span class="comment">         * 用户注册接口不需要验证.</span>
+<span class="comment">         */</span>
+        <span class="keyword">if</span> (httpServletRequest.getMethod().equals(HttpMethod.POST.name()) &amp;&amp; httpServletRequest.getRequestURI().endsWith(<span class="string">"/user"</span>)) {
+            filterChain.doFilter(httpServletRequest, httpServletResponse);
+            <span class="keyword">return</span>;
+        }
+        String authToken = httpServletRequest.getHeader(<span class="string">"Authorization"</span>);
+        <span class="comment">/**</span>
+<span class="comment">         * 如果未携带请求头，直接拒绝，并返回未登录的Http状态(401)</span>
+<span class="comment">         */</span>
+        <span class="keyword">if</span> (StringUtils.isEmpty(authToken)) {
+            httpServletResponse = ResultMsg.systemErrorWithJsonResponse(apiCode, httpServletResponse, HttpStatus.UNAUTHORIZED, <span class="string">"请先登录"</span>);
+            <span class="keyword">return</span>;
+            <span class="comment">/**</span>
+<span class="comment">             * 携带了请求头则解密，并验证其身份.</span>
+<span class="comment">             */</span>
+        } <span class="keyword">else</span> {
+            String authCode = Base64Util.decode(StringUtils.substringAfter(authToken, <span class="string">"Base "</span>));
+            <span class="comment">/**</span>
+<span class="comment">             * 如果解密出来的用户信息为空或者不包含分隔符":",则返回未认证</span>
+<span class="comment">             */</span>
+            <span class="keyword">if</span> (StringUtils.isEmpty(authCode) || !authCode.contains(<span class="string">":"</span>)) {
+                httpServletResponse = ResultMsg.systemErrorWithJsonResponse(apiCode, httpServletResponse, HttpStatus.UNAUTHORIZED, <span class="string">"请先登录,别瞎鸡巴攻击"</span>);
+                <span class="keyword">return</span>;
+            }
+            String username = StringUtils.substringBefore(authCode, <span class="string">":"</span>);
+            String password = StringUtils.substringAfter(authCode, <span class="string">":"</span>);
+            UserEntity userEntity = userService.findUserByUsernameAndPassword(username, password);
+            <span class="keyword">if</span> (Objects.isNull(userEntity)) {
+                httpServletResponse = ResultMsg.systemErrorWithJsonResponse(apiCode, httpServletResponse, HttpStatus.UNAUTHORIZED, <span class="string">"用户名和密码错误"</span>);
+                <span class="keyword">return</span>;
+            } <span class="keyword">else</span> {
+                filterChain.doFilter(httpServletRequest, httpServletResponse);
+            }
+
+        }
+    }
+}</code></pre>
+
+  </article>
+  <footer class="f-cf">
+    
+      <a href="/2019/04/15/Java-IP%E5%B7%A5%E5%85%B7%E7%B1%BB/" class="link f-fl">⟵Java/IP工具类</a>
+    
+    
+      <a href="/2018/12/11/%E8%BF%90%E7%BB%B4-%E9%80%9A%E8%BF%87Docker%E8%BF%90%E8%A1%8CRocketMq/" class="link f-fr">运维/通过Docker运行RocketMq⟶</a>
+    
+  </footer>
+</section></div>
+    <footer id="footer" class="f-cf">
+  kzysure@kzysure.com
+  
+    
+      
+        · <a href="https://github.com/kzysure" target="_blank" class="nav-icn">GitHub</a>
+      
+    
+  
+  <span class="copyright">2015-2020 All rights reserved @kzysure</span>
+</footer>
+  </div>
+</body>
+</html>
